@@ -14,6 +14,7 @@
 <form action="/giang-vien/update" method="post">
     <input type="hidden" name="id" value="${gv1.id}">
     <input type="hidden" name="page" value="${currentPage}">
+    <input type="hidden" name="pageSize" value="${currentPageSize}">
 
     Mã GV: <input type="text" name="ma" value="${gv1.ma} " readonly>
     <br>

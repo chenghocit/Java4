@@ -70,23 +70,28 @@ public class GiangVienServlet extends HttpServlet {
             }
         }
 
-        // Tính tổng số trang
-        long totalRecords = service.countGiangVien();
-        int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
+        try {
+            // Tính tổng số trang
+            long totalRecords = service.countGiangVien();
+            int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
 
-        // Đảm bảo page nằm trong khoảng hợp lệ
-        if (page < 1) page = 1;
-        if (page > totalPages && totalPages > 0) page = totalPages;
+            // Đảm bảo page nằm trong khoảng hợp lệ
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
 
-        // Lấy danh sách giảng viên cho trang hiện tại
-        List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
+            // Lấy danh sách giảng viên cho trang hiện tại
+            List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
 
-        // Đưa dữ liệu vào request
-        request.setAttribute("a", listGiangVien);
-        request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("totalRecords", totalRecords);
-        request.setAttribute("pageSize", pageSize);
+            // Đưa dữ liệu vào request
+            request.setAttribute("a", listGiangVien);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalRecords", totalRecords);
+            request.setAttribute("pageSize", pageSize);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Lỗi khi tải dữ liệu: " + e.getMessage());
+        }
 
         request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
     }
@@ -105,22 +110,27 @@ public class GiangVienServlet extends HttpServlet {
             }
         }
 
-        // Tính tổng số trang
-        long totalRecords = service.countGiangVien();
-        int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
+        try {
+            // Tính tổng số trang
+            long totalRecords = service.countGiangVien();
+            int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
 
-        // Đảm bảo page nằm trong khoảng hợp lệ
-        if (page < 1) page = 1;
-        if (page > totalPages && totalPages > 0) page = totalPages;
+            // Đảm bảo page nằm trong khoảng hợp lệ
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
 
-        // Lấy danh sách giảng viên cho trang hiện tại
-        List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
+            // Lấy danh sách giảng viên cho trang hiện tại
+            List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
 
-        // Đưa dữ liệu vào request
-        request.setAttribute("a", listGiangVien);
-        request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("totalRecords", totalRecords);
+            // Đưa dữ liệu vào request
+            request.setAttribute("a", listGiangVien);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalRecords", totalRecords);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Lỗi khi tải dữ liệu: " + e.getMessage());
+        }
 
         // Forward đến trang JSP với phân trang
         request.getRequestDispatcher("/view/giangviens-paging.jsp").forward(request, response);
@@ -128,51 +138,56 @@ public class GiangVienServlet extends HttpServlet {
 
     private void detailGiangVien(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String maGV = request.getParameter("b");
-        GiangVien gv = service.getGiangVienByMa(maGV);
-        
-        // Lấy trang hiện tại từ referer hoặc parameter
-        int page = 1;
-        int pageSize = 10;
-        
-        String pageParam = request.getParameter("page");
-        if (pageParam != null) {
-            try {
-                page = Integer.parseInt(pageParam);
-            } catch (NumberFormatException e) {
-                page = 1;
-            }
-        }
-        
-        String pageSizeParam = request.getParameter("pageSize");
-        if (pageSizeParam != null) {
-            try {
-                int requestedPageSize = Integer.parseInt(pageSizeParam);
-                if (requestedPageSize == 10 || requestedPageSize == 25 || requestedPageSize == 50 || requestedPageSize == 100) {
-                    pageSize = requestedPageSize;
+        try {
+            GiangVien gv = service.getGiangVienByMa(maGV);
+            
+            // Lấy trang hiện tại từ referer hoặc parameter
+            int page = 1;
+            int pageSize = 10;
+            
+            String pageParam = request.getParameter("page");
+            if (pageParam != null) {
+                try {
+                    page = Integer.parseInt(pageParam);
+                } catch (NumberFormatException e) {
+                    page = 1;
                 }
-            } catch (NumberFormatException e) {
-                pageSize = 10;
             }
+            
+            String pageSizeParam = request.getParameter("pageSize");
+            if (pageSizeParam != null) {
+                try {
+                    int requestedPageSize = Integer.parseInt(pageSizeParam);
+                    if (requestedPageSize == 10 || requestedPageSize == 25 || requestedPageSize == 50 || requestedPageSize == 100) {
+                        pageSize = requestedPageSize;
+                    }
+                } catch (NumberFormatException e) {
+                    pageSize = 10;
+                }
+            }
+            
+            // Tính tổng số trang
+            long totalRecords = service.countGiangVien();
+            int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
+            
+            // Đảm bảo page nằm trong khoảng hợp lệ
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+            
+            // Lấy danh sách giảng viên cho trang hiện tại
+            List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
+            
+            // Đưa dữ liệu vào request
+            request.setAttribute("gv1", gv);
+            request.setAttribute("a", listGiangVien);
+            request.setAttribute("currentPage", page);
+            request.setAttribute("totalPages", totalPages);
+            request.setAttribute("totalRecords", totalRecords);
+            request.setAttribute("pageSize", pageSize);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Lỗi khi tải chi tiết: " + e.getMessage());
         }
-        
-        // Tính tổng số trang
-        long totalRecords = service.countGiangVien();
-        int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
-        
-        // Đảm bảo page nằm trong khoảng hợp lệ
-        if (page < 1) page = 1;
-        if (page > totalPages && totalPages > 0) page = totalPages;
-        
-        // Lấy danh sách giảng viên cho trang hiện tại
-        List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
-        
-        // Đưa dữ liệu vào request
-        request.setAttribute("gv1", gv);
-        request.setAttribute("a", listGiangVien);
-        request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("totalRecords", totalRecords);
-        request.setAttribute("pageSize", pageSize);
         
         request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
     }
@@ -187,20 +202,39 @@ public class GiangVienServlet extends HttpServlet {
         }
         
         String pageParam = request.getParameter("page");
-        if (pageParam != null) {
-            response.sendRedirect("/giang-vien/hien-thi-tat-ca?page=" + pageParam);
-        } else {
-            response.sendRedirect("/giang-vien/hien-thi-tat-ca");
+        String pageSizeParam = request.getParameter("pageSize");
+        
+        StringBuilder redirectUrl = new StringBuilder("/giang-vien/hien-thi-tat-ca");
+        if (pageParam != null || pageSizeParam != null) {
+            redirectUrl.append("?");
+            if (pageParam != null) {
+                redirectUrl.append("page=").append(pageParam);
+                if (pageSizeParam != null) {
+                    redirectUrl.append("&pageSize=").append(pageSizeParam);
+                }
+            } else if (pageSizeParam != null) {
+                redirectUrl.append("pageSize=").append(pageSizeParam);
+            }
         }
+        
+        response.sendRedirect(redirectUrl.toString());
     }
 
     private void viewUpdateGiangVien(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String maGv = request.getParameter("a");
         String pageParam = request.getParameter("page");
+        String pageSizeParam = request.getParameter("pageSize");
         
-        GiangVien gv = service.getGiangVienByMa(maGv);
-        request.setAttribute("gv1", gv);
-        request.setAttribute("currentPage", pageParam != null ? pageParam : "1");
+        try {
+            GiangVien gv = service.getGiangVienByMa(maGv);
+            request.setAttribute("gv1", gv);
+            request.setAttribute("currentPage", pageParam != null ? pageParam : "1");
+            request.setAttribute("currentPageSize", pageSizeParam != null ? pageSizeParam : "10");
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Lỗi khi tải thông tin cập nhật: " + e.getMessage());
+        }
+        
         request.getRequestDispatcher("/view/update-giang-vien.jsp").forward(request, response);
     }
 
@@ -253,11 +287,22 @@ public class GiangVienServlet extends HttpServlet {
         }
         
         String pageParam = request.getParameter("page");
-        if (pageParam != null) {
-            response.sendRedirect("/giang-vien/hien-thi-tat-ca?page=" + pageParam);
-        } else {
-            response.sendRedirect("/giang-vien/hien-thi-tat-ca");
+        String pageSizeParam = request.getParameter("pageSize");
+        
+        StringBuilder redirectUrl = new StringBuilder("/giang-vien/hien-thi-tat-ca");
+        if (pageParam != null || pageSizeParam != null) {
+            redirectUrl.append("?");
+            if (pageParam != null) {
+                redirectUrl.append("page=").append(pageParam);
+                if (pageSizeParam != null) {
+                    redirectUrl.append("&pageSize=").append(pageSizeParam);
+                }
+            } else if (pageSizeParam != null) {
+                redirectUrl.append("pageSize=").append(pageSizeParam);
+            }
         }
+        
+        response.sendRedirect(redirectUrl.toString());
     }
     private void addGiangVien(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String ma = request.getParameter("ma");
@@ -271,19 +316,31 @@ public class GiangVienServlet extends HttpServlet {
                 tuoiStr == null || tuoiStr.trim().isEmpty() ||
                 queQuan == null || queQuan.trim().isEmpty()) {
 
-            List<GiangVien> listGiangVien = service.getAllGiangVien();
-            request.setAttribute("a", listGiangVien);
-            request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
-            request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            try {
+                List<GiangVien> listGiangVien = service.getAllGiangVien();
+                request.setAttribute("a", listGiangVien);
+                request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
+                request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            } catch (Exception e) {
+                e.printStackTrace();
+                request.setAttribute("error", "Lỗi khi tải dữ liệu");
+                request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            }
             return;
         }
 
         // Kiểm tra mã đã tồn tại chưa
         if (service.isMaExists(ma.trim())) {
-            List<GiangVien> listGiangVien = service.getAllGiangVien();
-            request.setAttribute("a", listGiangVien);
-            request.setAttribute("error", "Mã giảng viên '" + ma + "' đã tồn tại! Vui lòng nhập mã khác.");
-            request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            try {
+                List<GiangVien> listGiangVien = service.getAllGiangVien();
+                request.setAttribute("a", listGiangVien);
+                request.setAttribute("error", "Mã giảng viên '" + ma + "' đã tồn tại! Vui lòng nhập mã khác.");
+                request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            } catch (Exception e) {
+                e.printStackTrace();
+                request.setAttribute("error", "Lỗi khi kiểm tra dữ liệu");
+                request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            }
             return;
         }
 
@@ -302,15 +359,27 @@ public class GiangVienServlet extends HttpServlet {
             request.setAttribute("message", "Thêm giảng viên thành công!");
             request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
         } catch (NumberFormatException e) {
-            List<GiangVien> listGiangVien = service.getAllGiangVien();
-            request.setAttribute("a", listGiangVien);
-            request.setAttribute("error", "Tuổi phải là số!");
-            request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            try {
+                List<GiangVien> listGiangVien = service.getAllGiangVien();
+                request.setAttribute("a", listGiangVien);
+                request.setAttribute("error", "Tuổi phải là số!");
+                request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                request.setAttribute("error", "Lỗi khi tải dữ liệu");
+                request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            }
         } catch (Exception e) {
-            List<GiangVien> listGiangVien = service.getAllGiangVien();
-            request.setAttribute("a", listGiangVien);
-            request.setAttribute("error", e.getMessage());
-            request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            try {
+                List<GiangVien> listGiangVien = service.getAllGiangVien();
+                request.setAttribute("a", listGiangVien);
+                request.setAttribute("error", e.getMessage());
+                request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                request.setAttribute("error", "Lỗi khi xử lý dữ liệu");
+                request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+            }
         }
     }
 
