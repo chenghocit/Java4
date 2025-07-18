@@ -1,7 +1,7 @@
 package com.example.btvn_buoi3.servlet;
 
 import com.example.btvn_buoi3.entity.GiangVien;
-import com.example.btvn_buoi3.repository.GiangVienRepository;
+import com.example.btvn_buoi3.service.GiangVienService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
@@ -23,7 +23,7 @@ import java.util.List;
         "/giang-vien/add",
 })
 public class GiangVienServlet extends HttpServlet {
-    private GiangVienRepository repository = new GiangVienRepository();
+    private GiangVienService service = new GiangVienService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -71,7 +71,7 @@ public class GiangVienServlet extends HttpServlet {
         }
 
         // Tính tổng số trang
-        long totalRecords = repository.count();
+        long totalRecords = service.countGiangVien();
         int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
 
         // Đảm bảo page nằm trong khoảng hợp lệ
@@ -79,7 +79,7 @@ public class GiangVienServlet extends HttpServlet {
         if (page > totalPages && totalPages > 0) page = totalPages;
 
         // Lấy danh sách giảng viên cho trang hiện tại
-        List<GiangVien> listGiangVien = repository.findByPage(page, pageSize);
+        List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
 
         // Đưa dữ liệu vào request
         request.setAttribute("a", listGiangVien);
@@ -106,7 +106,7 @@ public class GiangVienServlet extends HttpServlet {
         }
 
         // Tính tổng số trang
-        long totalRecords = repository.count();
+        long totalRecords = service.countGiangVien();
         int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
 
         // Đảm bảo page nằm trong khoảng hợp lệ
@@ -114,7 +114,7 @@ public class GiangVienServlet extends HttpServlet {
         if (page > totalPages && totalPages > 0) page = totalPages;
 
         // Lấy danh sách giảng viên cho trang hiện tại
-        List<GiangVien> listGiangVien = repository.findByPage(page, pageSize);
+        List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
 
         // Đưa dữ liệu vào request
         request.setAttribute("a", listGiangVien);
@@ -128,7 +128,7 @@ public class GiangVienServlet extends HttpServlet {
 
     private void detailGiangVien(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String maGV = request.getParameter("b");
-        GiangVien gv = repository.detailGiangVien(maGV);
+        GiangVien gv = service.getGiangVienByMa(maGV);
         
         // Lấy trang hiện tại từ referer hoặc parameter
         int page = 1;
@@ -156,7 +156,7 @@ public class GiangVienServlet extends HttpServlet {
         }
         
         // Tính tổng số trang
-        long totalRecords = repository.count();
+        long totalRecords = service.countGiangVien();
         int totalPages = (int) Math.ceil(totalRecords / (double) pageSize);
         
         // Đảm bảo page nằm trong khoảng hợp lệ
@@ -164,7 +164,7 @@ public class GiangVienServlet extends HttpServlet {
         if (page > totalPages && totalPages > 0) page = totalPages;
         
         // Lấy danh sách giảng viên cho trang hiện tại
-        List<GiangVien> listGiangVien = repository.findByPage(page, pageSize);
+        List<GiangVien> listGiangVien = service.getGiangVienByPage(page, pageSize);
         
         // Đưa dữ liệu vào request
         request.setAttribute("gv1", gv);
@@ -179,7 +179,12 @@ public class GiangVienServlet extends HttpServlet {
 
     private void removeGiangVien(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String maGV = request.getParameter("id");
-        repository.delete(maGV);
+        try {
+            service.deleteGiangVien(maGV);
+        } catch (Exception e) {
+            // Log error hoặc xử lý lỗi
+            e.printStackTrace();
+        }
         
         String pageParam = request.getParameter("page");
         if (pageParam != null) {
@@ -193,7 +198,7 @@ public class GiangVienServlet extends HttpServlet {
         String maGv = request.getParameter("a");
         String pageParam = request.getParameter("page");
         
-        GiangVien gv = repository.detailGiangVien(maGv);
+        GiangVien gv = service.getGiangVienByMa(maGv);
         request.setAttribute("gv1", gv);
         request.setAttribute("currentPage", pageParam != null ? pageParam : "1");
         request.getRequestDispatcher("/view/update-giang-vien.jsp").forward(request, response);
@@ -213,7 +218,14 @@ public class GiangVienServlet extends HttpServlet {
             // Có thể xử lý báo lỗi nhập liệu ở đây nếu cần
         }
 
-        List<GiangVien> listGiangVien = repository.search(ten, tuoiMin, tuoiMax);
+        List<GiangVien> listGiangVien;
+        try {
+            listGiangVien = service.searchGiangVien(ten, tuoiMin, tuoiMax);
+        } catch (Exception e) {
+            // Xử lý lỗi tìm kiếm
+            listGiangVien = service.getAllGiangVien();
+            request.setAttribute("error", "Lỗi tìm kiếm: " + e.getMessage());
+        }
         request.setAttribute("a", listGiangVien);
         request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
 
@@ -233,7 +245,12 @@ public class GiangVienServlet extends HttpServlet {
     private void updateGiangVien(HttpServletRequest request, HttpServletResponse response) throws InvocationTargetException, IllegalAccessException, IOException {
         GiangVien gv = new GiangVien();
         BeanUtils.populate(gv, request.getParameterMap());
-        repository.update(gv);
+        try {
+            service.updateGiangVien(gv);
+        } catch (Exception e) {
+            // Log error hoặc xử lý lỗi
+            e.printStackTrace();
+        }
         
         String pageParam = request.getParameter("page");
         if (pageParam != null) {
@@ -254,7 +271,7 @@ public class GiangVienServlet extends HttpServlet {
                 tuoiStr == null || tuoiStr.trim().isEmpty() ||
                 queQuan == null || queQuan.trim().isEmpty()) {
 
-            List<GiangVien> listGiangVien = repository.getAll();
+            List<GiangVien> listGiangVien = service.getAllGiangVien();
             request.setAttribute("a", listGiangVien);
             request.setAttribute("error", "Vui lòng nhập đầy đủ thông tin!");
             request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
@@ -262,8 +279,8 @@ public class GiangVienServlet extends HttpServlet {
         }
 
         // Kiểm tra mã đã tồn tại chưa
-        if (repository.isMaExists(ma.trim())) {
-            List<GiangVien> listGiangVien = repository.getAll();
+        if (service.isMaExists(ma.trim())) {
+            List<GiangVien> listGiangVien = service.getAllGiangVien();
             request.setAttribute("a", listGiangVien);
             request.setAttribute("error", "Mã giảng viên '" + ma + "' đã tồn tại! Vui lòng nhập mã khác.");
             request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
@@ -278,16 +295,21 @@ public class GiangVienServlet extends HttpServlet {
             gv.setTen(ten);
             gv.setTuoi(tuoi);
             gv.setQueQuan(queQuan);
-            repository.add(gv);
+            service.addGiangVien(gv);
 
-            List<GiangVien> listGiangVien = repository.getAll();
+            List<GiangVien> listGiangVien = service.getAllGiangVien();
             request.setAttribute("a", listGiangVien);
             request.setAttribute("message", "Thêm giảng viên thành công!");
             request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
         } catch (NumberFormatException e) {
-            List<GiangVien> listGiangVien = repository.getAll();
+            List<GiangVien> listGiangVien = service.getAllGiangVien();
             request.setAttribute("a", listGiangVien);
             request.setAttribute("error", "Tuổi phải là số!");
+            request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
+        } catch (Exception e) {
+            List<GiangVien> listGiangVien = service.getAllGiangVien();
+            request.setAttribute("a", listGiangVien);
+            request.setAttribute("error", e.getMessage());
             request.getRequestDispatcher("/view/giangviens.jsp").forward(request, response);
         }
     }
